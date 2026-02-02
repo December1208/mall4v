@@ -12,6 +12,15 @@ import '@smallwei/avue/lib/index.css'
 
 // 全局样式
 import '@/styles/index.scss'
+
+// 环境变量：控制台可查看，也可通过 window.__APP_ENV__ 随时查看
+const appEnv = {
+  VITE_APP_RESOURCES_URL: import.meta.env.VITE_APP_RESOURCES_URL,
+  VITE_APP_BASE_API: import.meta.env.VITE_APP_BASE_API,
+  VITE_APP_ENV: import.meta.env.VITE_APP_ENV
+}
+window.__APP_ENV__ = appEnv
+console.log('[环境变量]', appEnv)
 // svg
 import 'virtual:svg-icons-register'
 import svgIcon from '@/icons/SvgIcon.vue'
