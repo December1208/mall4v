@@ -44,7 +44,7 @@ const imageList = computed(() => {
   if (props.modelValue) {
     const imageArray = props.modelValue?.split(',')
     for (let i = 0; i < imageArray.length; i++) {
-      res.push({ url: resourcesUrl + imageArray[i], response: imageArray[i] })
+      res.push({ url: imageArray[i], response: imageArray[i] })
     }
   }
   emit('update:modelValue', props.modelValue)
