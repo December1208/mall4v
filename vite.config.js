@@ -71,22 +71,58 @@ export default defineConfig(({ command })=> {
           chunkFileNames: 'static/js/[name]-[hash].js',
           entryFileNames: 'static/js/[name]-[hash].js',
           assetFileNames: 'static/[ext]/[name]-[hash].[ext]',
-          // 静态资源分拆打包
-          manualChunks (id) {
+          // 代码拆分配置 - 避免循环依赖和初始化顺序问题
+          manualChunks: (id) => {
+            // node_modules 中的依赖进行拆分
             if (id.includes('node_modules')) {
-              if (id.toString().indexOf('.pnpm/') !== -1) {
-                return id.toString().split('.pnpm/')[1].split('/')[0].toString();
-              } else if (id.toString().indexOf('node_modules/') !== -1) {
-                return id.toString().split('node_modules/')[1].split('/')[0].toString();
+              // Vue 核心生态（Vue、Vue Router、Pinia）打包在一起，避免循环依赖
+              if (id.includes('vue-router') || id.includes('pinia') || (id.includes('vue') && !id.includes('element-plus') && !id.includes('@element-plus'))) {
+                return 'vue-vendor'
               }
+              // Element Plus Icons 单独打包（需要在 element-plus 之前检查）
+              if (id.includes('@element-plus/icons-vue')) {
+                return 'element-icons'
+              }
+              // Element Plus UI 库单独打包（体积较大）
+              if (id.includes('element-plus')) {
+                return 'element-plus'
+              }
+              // ECharts 图表库单独打包（体积较大，且独立使用）
+              if (id.includes('echarts')) {
+                return 'echarts'
+              }
+              // Avue 表单组件库单独打包
+              if (id.includes('@smallwei/avue')) {
+                return 'avue'
+              }
+              // Moment.js 日期库单独打包（体积较大）
+              if (id.includes('moment')) {
+                return 'moment'
+              }
+              // 其他常用工具库打包到一起（避免拆分过细导致的问题）
+              if (id.includes('axios') || id.includes('lodash') || id.includes('crypto-js') || id.includes('qs')) {
+                return 'utils'
+              }
+              // 其他第三方库打包到一起
+              return 'vendor'
             }
-          }
-
+          },
+          // 使用 ES 模块格式，避免 CommonJS require 相关错误
+          format: 'es'
         }
       },
       sourcemap: false,
       target: 'es2015',
-      reportCompressedSize: false
+      reportCompressedSize: false,
+      // 设置 chunk 大小警告限制（500KB）
+      chunkSizeWarningLimit: 500,
+      // 确保使用 ES 模块格式，避免 CommonJS require 相关问题
+      commonjsOptions: {
+        include: [/node_modules/],
+        transformMixedEsModules: true,
+        // 确保 CommonJS 模块正确转换
+        strictRequires: true
+      }
     }
   }
 })
